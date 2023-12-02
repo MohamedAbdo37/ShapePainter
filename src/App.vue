@@ -1,12 +1,15 @@
+
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
+  <Paint/>
 </template>
 
 <script>
-
+import Paint from "./components/paintComponent.vue"
 export default {
   name: 'App',
-
+  components: {
+    Paint
+  }
 }
 </script>
 
