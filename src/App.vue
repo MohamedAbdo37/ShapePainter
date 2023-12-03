@@ -1,10 +1,10 @@
 
 <template>
   <Paint Position="position" />
-  <v-stage: config:Bord @contextmenu.prevent="handler">
+  <v-stage :config="configKonva" @contextmenu.prevent="handler">
     <v-layer>
     </v-layer>
-  </v-stage:>
+  </v-stage>
 </template>
 
 <script>
@@ -13,7 +13,7 @@ export default {
   name: 'App',
   data() {
     return {
-      Bord: {
+      configKonva: {
         width: window.innerWidth,
         height: window.innerHeight
       },
@@ -21,7 +21,7 @@ export default {
         x: undefined,
         y: undefined
       }
-    }
+    };
   },
   components: {
     Paint
@@ -37,7 +37,7 @@ export default {
       console.log(this.position);
     });
   }
-}
+};
 
 </script>
 
