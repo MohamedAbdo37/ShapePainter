@@ -26,7 +26,7 @@
       margin: 0;
       position: relative;
       background-color: darkgray;
-      display: block;
+      display: flex;
       margin-left: auto;
       margin-right: auto;
       width: 40%;
