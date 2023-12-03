@@ -17,7 +17,13 @@
 
 <script>
     export default {
-        name: 'Paint'
+        name: 'Paint',
+        methods:{
+          square(){
+
+          }
+        },
+        props:['Position']
     }
 </script>
 

@@ -1,16 +1,42 @@
 
 <template>
-  <Paint/>
+  <Paint Position="position" />
+  <v-stage: config:Bord @contextmenu.prevent="handler">
+    <v-layer>
+
+    </v-layer>
+  </v-stage:>
 </template>
 
 <script>
 import Paint from "./components/paintComponent.vue"
 export default {
   name: 'App',
+  data() {
+    return {
+      Bord: {
+        width: window.innerWidth,
+        height: window.innerHeight
+      },
+      position: {
+        x: undefined,
+        y: undefined
+      }
+    }
+  },
   components: {
     Paint
+  },
+  methods: {
+  },
+  created: function () {
+    window.addEventListener( "mousemove", (e) => {
+      this.position = { x: e.clientX , y: e.clientY };
+      console.log(this.position);
+    });
   }
 }
+
 </script>
 
 <style>
