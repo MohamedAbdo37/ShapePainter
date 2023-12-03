@@ -3,7 +3,6 @@
   <Paint Position="position" />
   <v-stage: config:Bord @contextmenu.prevent="handler">
     <v-layer>
-
     </v-layer>
   </v-stage:>
 </template>
@@ -28,10 +27,13 @@ export default {
     Paint
   },
   methods: {
+    handler() {
+
+    }
   },
   created: function () {
-    window.addEventListener( "mousemove", (e) => {
-      this.position = { x: e.clientX , y: e.clientY };
+    window.addEventListener("mousemove", (e) => {
+      this.position = { x: e.clientX, y: e.clientY };
       console.log(this.position);
     });
   }
