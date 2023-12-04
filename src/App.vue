@@ -1,61 +1,59 @@
 <template>
   <div class="toolbar">
-      <ul>
-        <li @click="setShape('rect')"><img src="./assets/rectangular-shape-outline.png" /></li>
-        <li @click="setShape('square')"><img src="./assets/square.png" /></li>
-        <li @click="setShape('ellipse')"><img src="./assets/ellipse-outline-shape-variant.png" /></li>
-        <li @click="setShape('circle')"><img src="./assets/dry-clean.png" /></li>
-        <li @click="setShape('triangle')"><img src="./assets/triangle.png" /></li>
-        <li><img src="./assets/varnish.png" /></li>
-        <li><img src="./assets/reply.png" /></li>
-        <li><img src="./assets/redoo.png" /></li>
-        <li><img src="./assets/icons8-save-50.png" /></li>
-        <li><img src="./assets/icons8-image-file-50.png" /></li>
-      </ul> 
-    </div>
-  <v-stage
-    ref="stage"
-    :config="stageSize"
-    @mousedown="handleStageMouseDown"
-    @touchstart="handleStageMouseDown"
-  >
+    <ul>
+      <li @click="setShape('rect')"><img src="./assets/rectangular-shape-outline.png" /></li>
+      <li @click="setShape('square')"><img src="./assets/square.png" /></li>
+      <li @click="setShape('ellipse')"><img src="./assets/ellipse-outline-shape-variant.png" /></li>
+      <li @click="setShape('circle')"><img src="./assets/dry-clean.png" /></li>
+      <li @click="setShape('triangle')"><img src="./assets/triangle.png" /></li>
+      <li><img src="./assets/varnish.png" /></li>
+      <li><img src="./assets/reply.png" /></li>
+      <li><img src="./assets/redoo.png" /></li>
+      <li><img src="./assets/icons8-save-50.png" /></li>
+      <li><img src="./assets/icons8-image-file-50.png" /></li>
+    </ul>
+  </div>
+  <v-stage ref="stage" :config="stageSize" @mousedown="handleStageMouseDown" @touchstart="handleStageMouseDown">
     <v-layer ref="layer">
-      <v-rect
-        v-for="item in rectangles"
-        :key="item.id"
-        :config="item"
-        @transformend="handleTransformEnd"
-      />
-      <v-circle
-        v-for="item in circles"
-        :key="item.id"
-        :config="item"
-        @transformend="handleTransformEnd"
-      />
-      <v-regular-polygon
-        v-for="item in squares"
-        :key="item.id"
-        :config="item"
-        @transformend="handleTransformEnd"
-      />
-      <v-regular-polygon
-        v-for="item in triangles"
-        :key="item.id"
-        :config="item"
-        @transformend="handleTransformEnd"
-      />
-      <v-ellipse
-        v-for="item in ellipses"
-        :key="item.id"
-        :config="item"
-        @transformend="handleTransformEnd"
-      />
+      
+      <v-rect 
+      v-for="item in rectangles" 
+      :key="item.id" 
+      :config="item" 
+      @transformend="handleTransformEnd" />
+      
+      <v-circle 
+      v-for="item in circles" 
+      :key="item.id" 
+      :config="item" 
+      @transformend="handleTransformEnd" />
+      
+      <v-regular-polygon 
+      v-for="item in squares" 
+      :key="item.id" 
+      :config="item" 
+      @transformend="handleTransformEnd" />
+      
+      <v-regular-polygon 
+      v-for="item in triangles" 
+      :key="item.id" 
+      :config="item" 
+      @transformend="handleTransformEnd" />
+
+      <v-ellipse 
+      v-for="item in ellipses" 
+      :key="item.id" 
+      :config="item" 
+      @transformend="handleTransformEnd" />
+
       <v-transformer ref="transformer" />
     </v-layer>
   </v-stage>
 </template>
 
 <script>
+import axios from 'axios';
+
 //import Konva from 'konva';
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -68,20 +66,9 @@ export default {
         width: width,
         height: height,
       },
+      color: "#fff",
       circles: [
-        {
-          x: 20,
-          y: 20,
-          width: 100,
-          height: 100,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
+
       ],
       rectangles: [
         {
@@ -114,7 +101,7 @@ export default {
         },
       ],
       squares: [
-      {
+        {
           rotation: 0,
           x: 300,
           y: 300,
@@ -130,7 +117,7 @@ export default {
         }
       ],
       triangles: [
-      {
+        {
           rotation: 0,
           x: 500,
           y: 500,
@@ -163,8 +150,8 @@ export default {
       ],
       selectedShapeID: '',
       position: {
-          x: undefined,
-          y: undefined
+        x: undefined,
+        y: undefined
       },
     };
   },
@@ -191,13 +178,13 @@ export default {
         (r) => r.name === this.selectedShapeID
       );
       var shape;
-      if(rect)
+      if (rect)
         shape = rect
-      else if(square)
+      else if (square)
         shape = square
-      else if(circle) 
+      else if (circle)
         shape = circle
-      else if(ellipse)
+      else if (ellipse)
         shape = ellipse
       else
         shape = triangle
@@ -214,7 +201,7 @@ export default {
       // clicked on stage - clear selection
       if (e.target === e.target.getStage()) {
         const newShape = this.createNewShape();
-        switch(this.shape) {
+        switch (this.shape) {
           case 'rect':
             this.rectangles.push(newShape)
             break;
@@ -255,13 +242,13 @@ export default {
       const triangle = this.triangles.find((r) => r.name === name);
       if (rect) {
         this.selectedShapeID = name;
-      } else if(square) {
+      } else if (square) {
         this.selectedShapeID = name;
-      } else if(circle) {
+      } else if (circle) {
         this.selectedShapeID = name;
-      } else if(ellipse) {
+      } else if (ellipse) {
         this.selectedShapeID = name;
-      } else if(triangle) {
+      } else if (triangle) {
         this.selectedShapeID = name;
       } else {
         this.selectedShapeID = name;
@@ -269,86 +256,28 @@ export default {
       this.updateTransformer();
     },
     createNewShape() {
-      var newShape = {};
-      if(this.shape == 'rect') {
-        newShape = {
-          rotation: 0,
-          x: this.position.x,
-          y: this.position.y,
-          width: 100,
-          height: 50,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
-      }
-      else if(this.shape == 'square') {
-        newShape = {
-          rotation: 45,
-          x: this.position.x,
-          y: this.position.y,
-          sides: 4,
-          radius: 100,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
-      }
-      else if(this.shape == 'circle') {
-        newShape = {
-          rotation: 0,
-          x: this.position.x,
-          y: this.position.y,
-          radius: 100,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
-      }
-      else if(this.shape == 'triangle') {
-        newShape = {
-          rotation: 0,
-          x: this.position.x,
-          y: this.position.y,
-          sides: 3,
-          radius: 100,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
-      }
-      else if(this.shape == 'ellipse') {
-        newShape = {
-          rotation: 0,
-          x: this.position.x,
-          y: this.position.y,
-          radiusX: 100,
-          radiusY: 50,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
-      }
+      let newShape = undefined;
+      let X1 = undefined;
+      let Y1 = undefined;
+
+      window.addEventListener("mousedown", () => {
+        X1 = this.position.x;
+        Y1 = this.position.y;
+        axios.post("localhost:8081/set", {
+          stroke: this.color,
+          type: this.shape
+        }).then(() => console.log("Create shape done"), () => console.log("Create shape faild"));
+      });
+
+      window.addEventListener("mousemove", ()=>{
+        axios.get("localhost:8081/shape", {
+          x1: X1,
+          y1: Y1,
+          x2: this.position.x,
+          y2: this.position.y
+        }).then((r) => newShape = r, () => console.log("Create shape faild"));
+      });
+
       return newShape;
     },
     updateTransformer() {
@@ -384,7 +313,11 @@ export default {
   },
   created: function () {
     window.addEventListener("mousemove", (e) => {
-      this.position = { x: e.clientX, y: e.clientY };
+      let offsetY = e.clientY - document.querySelector(".toolbar").offsetHeight;
+      if (offsetY == "NaN") {
+        console.log(document.querySelector(".toolbar").offsetHeight);
+      }
+      this.position = { x: e.clientX, y: offsetY };
       console.log(this.position);
     });
   }
@@ -398,30 +331,35 @@ export default {
   text-align: center;
   color: #2c3e50;
 }
-.toolbar{
-      margin: 0;
-      position: relative;
-      background-color: darkgray;
-      display: flex;
-      margin-left: auto;
-      margin-right: auto;
-      width: 40%;
-    }
-    .toolbar ul{
-      list-style-type: none;
-    }
-    .toolbar ul li{
-      height: 50px;
-      width: 50px;
-      display: inline-block;
-      margin-top: 0px;
-    }
-    .toolbar ul li img{
-      height: 30px;
-      width: auto;
-      margin-top: 10px;
-    }
-    .toolbar ul li:hover{
-      background-color: #e6e6e6;
-    }
+
+.toolbar {
+  margin: 0;
+  position: relative;
+  background-color: darkgray;
+  display: flex;
+  margin-left: auto;
+  margin-right: auto;
+  width: 40%;
+}
+
+.toolbar ul {
+  list-style-type: none;
+}
+
+.toolbar ul li {
+  height: 50px;
+  width: 50px;
+  display: inline-block;
+  margin-top: 0px;
+}
+
+.toolbar ul li img {
+  height: 30px;
+  width: auto;
+  margin-top: 10px;
+}
+
+.toolbar ul li:hover {
+  background-color: #e6e6e6;
+}
 </style>
