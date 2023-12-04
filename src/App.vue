@@ -155,7 +155,7 @@ export default {
     },
     handleStageMouseDown(e) {
       // clicked on stage - clear selection
-      if (e.target === e.target.getStage()) {
+      if (e.target === this.$refs.stage.getStage()) {
         const newShape = this.createNewShape();
         switch (this.shape) {
           case 'rect':
@@ -184,13 +184,13 @@ export default {
 
       // clicked on transformer - do nothing
       const clickedOnTransformer =
-        e.target.getParent().className === 'Transformer';
+        e.target === this.$refs.transformer;
       if (clickedOnTransformer) {
         return;
       }
 
       // find clicked rect by its name
-      const name = e.target.name();
+      const name = e.target.name;
       const rect = this.rectangles.find((r) => r.name === name);
       const square = this.squares.find((r) => r.name === name);
       const circle = this.circles.find((r) => r.name === name);
@@ -221,8 +221,12 @@ export default {
         Y1 = this.position.y;
         axios.post("localhost:8081/set", {
           stroke: this.color,
-          type: this.shape
+          type: this.shape,
+          name: this.generateRandomString(10)
         }).then(() => console.log("Create shape done"), () => console.log("Create shape faild"));
+
+        console.log(`set p1(${X1}, ${Y1})`);
+  
       });
 
       window.addEventListener("mousemove", ()=>{
@@ -230,9 +234,20 @@ export default {
           x1: X1,
           y1: Y1,
           x2: this.position.x,
-          y2: this.position.y
+          y2: this.position.y,
+          name: this.generateRandomString(10)
         }).then((r) => newShape = r, () => console.log("Create shape faild"));
+
+        console.log(`draw p2(${this.position.x} ,${this.position.y})`);
       });
+
+      window.addEventListener("mouseup",()=>{
+        window.removeEventListener("mousemove",this.createNewShape());
+        console.log("done");
+        window.removeEventListener("mouseup",this.createNewShape());
+      });
+
+    
 
       return newShape;
     },
