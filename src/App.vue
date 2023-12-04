@@ -1,19 +1,30 @@
 <template>
   <div class="toolbar">
-    <ul>
-      <li @click="setShape('rect')"><img src="./assets/rectangular-shape-outline.png" /></li>
-      <li @click="setShape('square')"><img src="./assets/square.png" /></li>
-      <li @click="setShape('ellipse')"><img src="./assets/ellipse-outline-shape-variant.png" /></li>
-      <li @click="setShape('circle')"><img src="./assets/dry-clean.png" /></li>
-      <li @click="setShape('triangle')"><img src="./assets/triangle.png" /></li>
-      <li><img src="./assets/varnish.png" /></li>
-      <li><img src="./assets/reply.png" /></li>
-      <li><img src="./assets/redoo.png" /></li>
-      <li><img src="./assets/icons8-save-50.png" /></li>
-      <li><img src="./assets/icons8-image-file-50.png" /></li>
-    </ul>
-  </div>
-  <v-stage ref="stage" :config="stageSize" @mousedown="handleStageMouseDown" @touchstart="handleStageMouseDown">
+      <ul>
+        <li @click="setShape('line')" :class="{ selected: shape === 'line' }"><img src="./assets/diagonal-line.png" /></li>
+        <li @click="setShape('rect')" :class="{ selected: shape === 'rect' }"><img src="./assets/rectangular-shape-outline.png" /></li>
+        <li @click="setShape('square')" :class="{ selected: shape === 'square' }"><img src="./assets/square.png" /></li>
+        <li @click="setShape('ellipse')" :class="{ selected: shape === 'ellipse' }"><img src="./assets/ellipse-outline-shape-variant.png" /></li>
+        <li @click="setShape('circle')" :class="{ selected: shape === 'circle' }"><img src="./assets/dry-clean.png" /></li>
+        <li @click="setShape('triangle')" :class="{ selected: shape === 'triangle' }"><img src="./assets/triangle.png" /></li>
+        <li @click="this.shape = ''">
+          <input type="color"  class="color-input" v-model="fill"/>
+        </li>
+        <li><img src="./assets/reply.png" /></li>
+        <li><img src="./assets/redoo.png" /></li>
+        <li><img src="./assets/icons8-save-50.png" /></li>
+        <li><img src="./assets/icons8-image-file-50.png" /></li>
+        <li><img src="./assets/copying.png" /></li>
+        <li><img src="./assets/paste.png" /></li>
+        <li><img src="./assets/bin.png" /></li>
+      </ul> 
+    </div>
+  <v-stage
+    ref="stage"
+    :config="stageSize"
+    @mousedown="handleStageMouseDown"
+    @touchstart="handleStageMouseDown"
+  >
     <v-layer ref="layer">
       
       <v-rect 
@@ -62,6 +73,7 @@ export default {
   data() {
     return {
       shape: '',
+      fill: '',
       stageSize: {
         width: width,
         height: height,
@@ -71,53 +83,11 @@ export default {
 
       ],
       rectangles: [
-        {
-          rotation: 0,
-          x: 10,
-          y: 10,
-          width: 100,
-          height: 100,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        },
-        {
-          rotation: 0,
-          x: 150,
-          y: 150,
-          width: 100,
-          height: 100,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        },
       ],
       squares: [
-        {
-          rotation: 0,
-          x: 300,
-          y: 300,
-          sides: 4,
-          radius: 100,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
       ],
       triangles: [
-        {
+      {
           rotation: 0,
           x: 500,
           y: 500,
@@ -133,20 +103,6 @@ export default {
         }
       ],
       ellipses: [
-        {
-          rotation: 0,
-          x: 600,
-          y: 200,
-          radiusX: 100,
-          radiusY: 50,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
       ],
       selectedShapeID: '',
       position: {
@@ -331,35 +287,47 @@ export default {
   text-align: center;
   color: #2c3e50;
 }
-
-.toolbar {
-  margin: 0;
-  position: relative;
-  background-color: darkgray;
-  display: flex;
-  margin-left: auto;
-  margin-right: auto;
-  width: 40%;
-}
-
-.toolbar ul {
-  list-style-type: none;
-}
-
-.toolbar ul li {
-  height: 50px;
-  width: 50px;
-  display: inline-block;
-  margin-top: 0px;
-}
-
-.toolbar ul li img {
-  height: 30px;
-  width: auto;
-  margin-top: 10px;
-}
-
-.toolbar ul li:hover {
-  background-color: #e6e6e6;
-}
+.toolbar{
+      margin: 0;
+      position: relative;
+      background-color: darkgray;
+      display: flex;
+      margin-left: auto;
+      margin-right: auto;
+      
+    }
+    .toolbar ul{
+      list-style-type: none;
+      margin: auto
+    }
+    .toolbar ul li{
+      height: 50px;
+      width: 50px;
+      display: inline-block;
+      margin-top: 0px;
+      cursor: pointer;
+    }
+    .toolbar ul li img{
+      height: 30px;
+      width: auto;
+      margin-top: 10px;
+    }
+    .toolbar ul li:hover{
+      background-color: #e6e6e6;
+    }
+    .toolbar ul li.selected {
+      background-color: #e6e6e6;
+    }
+    input[type="color"] {
+      /*opacity: 0;*/
+      /*display: block;*/
+      margin: 0px;
+      width: 44px;
+      height: 44px;
+      border: none;
+    }
+    .color-input{
+      background-image:url("./assets/varnish.png");
+      background-repeat:no-repeat;
+    }
 </style>
