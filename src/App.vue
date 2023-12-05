@@ -64,7 +64,7 @@
 
 <script>
 //import Konva from 'konva';
-import {axios} from "axios";
+import axios from 'axios';
 
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -138,10 +138,12 @@ export default {
 
       console.log(shape);
     },
-    handleStageMouseDown(e) {
+   async handleStageMouseDown(e) {
       // clicked on stage - clear selection
       if (e.target === e.target.getStage()) {
-        const newShape = this.createNewShape();
+        let newShape = {};
+       await this.createNewShape().then((r)=>newShape=r);
+        console.log(newShape);
         switch(this.shape) {
           case 'rect':
             this.rectangles.push(newShape)
@@ -212,17 +214,21 @@ export default {
 
       this.updateTransformer();
     },
-    createNewShape() {
+   
+   async createNewShape() {
       var newShape = {};
 
-      axios.get("localhost://8081/shape",{
-        param:{
+      await axios.get("http://localhost:8081/shape",{
+        params:{
           x: this.position.x,
           y: this.position.y,
           type: this.shape
         }
-      }).then((r)=> newShape = JSON.parse(r));
-      
+      }).then((r)=> {
+        console.log(r);
+        newShape =r.data;});
+
+      console.log(newShape);
       // if(this.shape == 'rect') {
       //   newShape = {
       //     rotation: 0,
@@ -338,7 +344,7 @@ export default {
   created: function () {
     window.addEventListener("mousemove", (e) => {
       this.position = { x: e.clientX, y: e.clientY };
-      console.log(this.position);
+    
     });
   }
 };
