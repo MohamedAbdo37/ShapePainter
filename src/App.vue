@@ -64,6 +64,8 @@
 
 <script>
 //import Konva from 'konva';
+import {axios} from "axios";
+
 const width = window.innerWidth;
 const height = window.innerHeight;
 
@@ -212,85 +214,94 @@ export default {
     },
     createNewShape() {
       var newShape = {};
-      if(this.shape == 'rect') {
-        newShape = {
-          rotation: 0,
+
+      axios.get("localhost://8081/shape",{
+        param:{
           x: this.position.x,
-          y: this.position.y - 82,
-          width: 100,
-          height: 50,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
+          y: this.position.y,
+          type: this.shape
         }
-      }
-      else if(this.shape == 'square') {
-        newShape = {
-          rotation: 45,
-          x: this.position.x,
-          y: this.position.y - 82,
-          sides: 4,
-          radius: 100,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
-      }
-      else if(this.shape == 'circle') {
-        newShape = {
-          rotation: 0,
-          x: this.position.x,
-          y: this.position.y - 82,
-          radius: 100,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
-      }
-      else if(this.shape == 'triangle') {
-        newShape = {
-          rotation: 0,
-          x: this.position.x,
-          y: this.position.y - 82,
-          sides: 3,
-          radius: 100,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
-      }
-      else if(this.shape == 'ellipse') {
-        newShape = {
-          rotation: 0,
-          x: this.position.x,
-          y: this.position.y - 82,
-          radiusX: 100,
-          radiusY: 50,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
-      }
+      }).then((r)=> newShape = JSON.parse(r));
+      
+      // if(this.shape == 'rect') {
+      //   newShape = {
+      //     rotation: 0,
+      //     x: this.position.x,
+      //     y: this.position.y - 82,
+      //     width: 100,
+      //     height: 50,
+      //     scaleX: 1,
+      //     scaleY: 1,
+      //     strokeWidth: 3,
+      //     stroke: 'black',
+      //     fill: '',
+      //     name: this.generateRandomString(10),
+      //     draggable: true,
+      //   }
+      // }
+      // else if(this.shape == 'square') {
+      //   newShape = {
+      //     rotation: 45,
+      //     x: this.position.x,
+      //     y: this.position.y - 82,
+      //     sides: 4,
+      //     radius: 100,
+      //     scaleX: 1,
+      //     scaleY: 1,
+      //     strokeWidth: 3,
+      //     stroke: 'black',
+      //     fill: '',
+      //     name: this.generateRandomString(10),
+      //     draggable: true,
+      //   }
+      // }
+      // else if(this.shape == 'circle') {
+      //   newShape = {
+      //     rotation: 0,
+      //     x: this.position.x,
+      //     y: this.position.y - 82,
+      //     radius: 100,
+      //     scaleX: 1,
+      //     scaleY: 1,
+      //     strokeWidth: 3,
+      //     stroke: 'black',
+      //     fill: '',
+      //     name: this.generateRandomString(10),
+      //     draggable: true,
+      //   }
+      // }
+      // else if(this.shape == 'triangle') {
+      //   newShape = {
+      //     rotation: 0,
+      //     x: this.position.x,
+      //     y: this.position.y - 82,
+      //     sides: 3,
+      //     radius: 100,
+      //     scaleX: 1,
+      //     scaleY: 1,
+      //     strokeWidth: 3,
+      //     stroke: 'black',
+      //     fill: '',
+      //     name: this.generateRandomString(10),
+      //     draggable: true,
+      //   }
+      // }
+      // else if(this.shape == 'ellipse') {
+      //   newShape = {
+      //     rotation: 0,
+      //     x: this.position.x,
+      //     y: this.position.y - 82,
+      //     radiusX: 100,
+      //     radiusY: 50,
+      //     scaleX: 1,
+      //     scaleY: 1,
+      //     strokeWidth: 3,
+      //     stroke: 'black',
+      //     fill: '',
+      //     name: this.generateRandomString(10),
+      //     draggable: true,
+      //   }
+      // }
       return newShape;
     },
     updateTransformer() {
