@@ -184,13 +184,13 @@ export default {
 
       // clicked on transformer - do nothing
       const clickedOnTransformer =
-        e.target === this.$refs.transformer;
+        e.target.getParent().className === 'Transformer';
       if (clickedOnTransformer) {
         return;
       }
 
       // find clicked rect by its name
-      const name = e.target.name;
+      const name = e.target.name();
       const rect = this.rectangles.find((r) => r.name === name);
       const square = this.squares.find((r) => r.name === name);
       const circle = this.circles.find((r) => r.name === name);
@@ -211,44 +211,101 @@ export default {
       }
       this.updateTransformer();
     },
-    createNewShape() {
+  async  createNewShape() {
       let newShape = undefined;
-      let X1 = undefined;
-      let Y1 = undefined;
 
-      window.addEventListener("mousedown", () => {
-        X1 = this.position.x;
-        Y1 = this.position.y;
-        axios.post("localhost:8081/set", {
-          stroke: this.color,
-          type: this.shape,
-          name: this.generateRandomString(10)
-        }).then(() => console.log("Create shape done"), () => console.log("Create shape faild"));
+    await axios.get("http://localhost:8081/shape", {
+        x: this.position.x,
+        y: this.position.y,
+        name: this.generateRandomString(10),
+        stroke: this.fill,
+        type: this.shape
+      }).then((r) => {
+        console.log(r);
+        newShape = JSON.stringify(r.data);
+      }, () => console.log("Create shape faild"));
 
-        console.log(`set p1(${X1}, ${Y1})`);
-  
-      });
-
-      window.addEventListener("mousemove", ()=>{
-        axios.get("localhost:8081/shape", {
-          x1: X1,
-          y1: Y1,
-          x2: this.position.x,
-          y2: this.position.y,
-          name: this.generateRandomString(10)
-        }).then((r) => newShape = r, () => console.log("Create shape faild"));
-
-        console.log(`draw p2(${this.position.x} ,${this.position.y})`);
-      });
-
-      window.addEventListener("mouseup",()=>{
-        window.removeEventListener("mousemove",this.createNewShape());
-        console.log("done");
-        window.removeEventListener("mouseup",this.createNewShape());
-      });
-
+        console.log(newShape);
+      // if(this.shape == 'rect') {
+      //   newShape = {
+      //     rotation: 0,
+      //     x: this.position.x,
+      //     y: this.position.y,
+      //     width: 100,
+      //     height: 50,
+      //     scaleX: 1,
+      //     scaleY: 1,
+      //     strokeWidth: 3,
+      //     stroke: 'black',
+      //     fill: '',
+      //     name: this.generateRandomString(10),
+      //     draggable: true,
+      //   }
+      // }
+      // else if(this.shape == 'square') {
+      //   newShape = {
+      //     rotation: 45,
+      //     x: this.position.x,
+      //     y: this.position.y,
+      //     sides: 4,
+      //     radius: 100,
+      //     scaleX: 1,
+      //     scaleY: 1,
+      //     strokeWidth: 3,
+      //     stroke: 'black',
+      //     fill: '',
+      //     name: this.generateRandomString(10),
+      //     draggable: true,
+      //   }
+      // }
+      // else if(this.shape == 'circle') {
+      //   newShape = {
+      //     rotation: 0,
+      //     x: this.position.x,
+      //     y: this.position.y,
+      //     radius: 100,
+      //     scaleX: 1,
+      //     scaleY: 1,
+      //     strokeWidth: 3,
+      //     stroke: 'black',
+      //     fill: '',
+      //     name: this.generateRandomString(10),
+      //     draggable: true,
+      //   }
+      // }
+      // else if(this.shape == 'triangle') {
+      //   newShape = {
+      //     rotation: 0,
+      //     x: this.position.x,
+      //     y: this.position.y,
+      //     sides: 3,
+      //     radius: 100,
+      //     scaleX: 1,
+      //     scaleY: 1,
+      //     strokeWidth: 3,
+      //     stroke: 'black',
+      //     fill: '',
+      //     name: this.generateRandomString(10),
+      //     draggable: true,
+      //   }
+      // }
+      // else if(this.shape == 'ellipse') {
+      //   newShape = {
+      //     rotation: 0,
+      //     x: this.position.x,
+      //     y: this.position.y,
+      //     radiusX: 100,
+      //     radiusY: 50,
+      //     scaleX: 1,
+      //     scaleY: 1,
+      //     strokeWidth: 3,
+      //     stroke: 'black',
+      //     fill: '',
+      //     name: this.generateRandomString(10),
+      //     draggable: true,
+      //   }
+      // }
     
-
       return newShape;
     },
     updateTransformer() {
