@@ -10,6 +10,7 @@
         <li @click="this.shape = ''">
           <input type="color"  class="color-input" v-model="fill"/>
         </li>
+        <li @click="setShape('color')" :class="{ selected: shape === 'color' }"><img src="./assets/varnish.png"></li>
         <li><img src="./assets/reply.png" /></li>
         <li><img src="./assets/redoo.png" /></li>
         <li><img src="./assets/icons8-save-50.png" /></li>
@@ -26,45 +27,42 @@
     @touchstart="handleStageMouseDown"
   >
     <v-layer ref="layer">
-      
-      <v-rect 
-      v-for="item in rectangles" 
-      :key="item.id" 
-      :config="item" 
-      @transformend="handleTransformEnd" />
-      
-      <v-circle 
-      v-for="item in circles" 
-      :key="item.id" 
-      :config="item" 
-      @transformend="handleTransformEnd" />
-      
-      <v-regular-polygon 
-      v-for="item in squares" 
-      :key="item.id" 
-      :config="item" 
-      @transformend="handleTransformEnd" />
-      
-      <v-regular-polygon 
-      v-for="item in triangles" 
-      :key="item.id" 
-      :config="item" 
-      @transformend="handleTransformEnd" />
-
-      <v-ellipse 
-      v-for="item in ellipses" 
-      :key="item.id" 
-      :config="item" 
-      @transformend="handleTransformEnd" />
-
+      <v-rect
+        v-for="item in rectangles"
+        :key="item.id"
+        :config="item"
+        @transformend="handleTransformEnd"
+      />
+      <v-circle
+        v-for="item in circles"
+        :key="item.id"
+        :config="item"
+        @transformend="handleTransformEnd"
+      />
+      <v-regular-polygon
+        v-for="item in squares"
+        :key="item.id"
+        :config="item"
+        @transformend="handleTransformEnd"
+      />
+      <v-regular-polygon
+        v-for="item in triangles"
+        :key="item.id"
+        :config="item"
+        @transformend="handleTransformEnd"
+      />
+      <v-ellipse
+        v-for="item in ellipses"
+        :key="item.id"
+        :config="item"
+        @transformend="handleTransformEnd"
+      />
       <v-transformer ref="transformer" />
     </v-layer>
   </v-stage>
 </template>
 
 <script>
-import axios from 'axios';
-
 //import Konva from 'konva';
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -78,36 +76,20 @@ export default {
         width: width,
         height: height,
       },
-      color: "#fff",
       circles: [
-
       ],
       rectangles: [
       ],
       squares: [
       ],
       triangles: [
-      {
-          rotation: 0,
-          x: 500,
-          y: 500,
-          sides: 3,
-          radius: 100,
-          scaleX: 1,
-          scaleY: 1,
-          strokeWidth: 3,
-          stroke: 'black',
-          fill: '',
-          name: this.generateRandomString(10),
-          draggable: true,
-        }
       ],
       ellipses: [
       ],
       selectedShapeID: '',
       position: {
-        x: undefined,
-        y: undefined
+          x: undefined,
+          y: undefined
       },
     };
   },
@@ -134,13 +116,13 @@ export default {
         (r) => r.name === this.selectedShapeID
       );
       var shape;
-      if (rect)
+      if(rect)
         shape = rect
-      else if (square)
+      else if(square)
         shape = square
-      else if (circle)
+      else if(circle) 
         shape = circle
-      else if (ellipse)
+      else if(ellipse)
         shape = ellipse
       else
         shape = triangle
@@ -152,12 +134,13 @@ export default {
       shape.scaleX = e.target.scaleX();
       shape.scaleY = e.target.scaleY();
 
+      console.log(shape);
     },
     handleStageMouseDown(e) {
       // clicked on stage - clear selection
-      if (e.target === this.$refs.stage.getStage()) {
+      if (e.target === e.target.getStage()) {
         const newShape = this.createNewShape();
-        switch (this.shape) {
+        switch(this.shape) {
           case 'rect':
             this.rectangles.push(newShape)
             break;
@@ -173,9 +156,7 @@ export default {
           case 'ellipse':
             this.ellipses.push(newShape)
             break;
-          default:
-            this.shape = "";
-            break;
+
         }
         this.selectedShapeID = '';
         this.updateTransformer();
@@ -196,116 +177,120 @@ export default {
       const circle = this.circles.find((r) => r.name === name);
       const ellipse = this.ellipses.find((r) => r.name === name);
       const triangle = this.triangles.find((r) => r.name === name);
+      
       if (rect) {
         this.selectedShapeID = name;
-      } else if (square) {
+      } else if(square) {
         this.selectedShapeID = name;
-      } else if (circle) {
+      } else if(circle) {
         this.selectedShapeID = name;
-      } else if (ellipse) {
+      } else if(ellipse) {
         this.selectedShapeID = name;
-      } else if (triangle) {
+      } else if(triangle) {
         this.selectedShapeID = name;
       } else {
         this.selectedShapeID = name;
       }
+
+      
+      if(this.shape === "color"){
+        console.log("color");
+        if (rect) {
+          rect.fill = this.fill;
+        } else if(square) {
+          square.fill = this.fill;
+        } else if(circle) {
+          circle.fill = this.fill;
+        } else if(ellipse) {
+          ellipse.fill = this.fill;
+        } else if(triangle) {
+          triangle.fill = this.fill;
+        }
+      }
+
       this.updateTransformer();
     },
-  async  createNewShape() {
-      let newShape = undefined;
-
-    await axios.get("http://localhost:8081/shape", {
-        x: this.position.x,
-        y: this.position.y,
-        name: this.generateRandomString(10),
-        stroke: this.fill,
-        type: this.shape
-      }).then((r) => {
-        console.log(r);
-        newShape = JSON.stringify(r.data);
-      }, () => console.log("Create shape faild"));
-
-        console.log(newShape);
-      // if(this.shape == 'rect') {
-      //   newShape = {
-      //     rotation: 0,
-      //     x: this.position.x,
-      //     y: this.position.y,
-      //     width: 100,
-      //     height: 50,
-      //     scaleX: 1,
-      //     scaleY: 1,
-      //     strokeWidth: 3,
-      //     stroke: 'black',
-      //     fill: '',
-      //     name: this.generateRandomString(10),
-      //     draggable: true,
-      //   }
-      // }
-      // else if(this.shape == 'square') {
-      //   newShape = {
-      //     rotation: 45,
-      //     x: this.position.x,
-      //     y: this.position.y,
-      //     sides: 4,
-      //     radius: 100,
-      //     scaleX: 1,
-      //     scaleY: 1,
-      //     strokeWidth: 3,
-      //     stroke: 'black',
-      //     fill: '',
-      //     name: this.generateRandomString(10),
-      //     draggable: true,
-      //   }
-      // }
-      // else if(this.shape == 'circle') {
-      //   newShape = {
-      //     rotation: 0,
-      //     x: this.position.x,
-      //     y: this.position.y,
-      //     radius: 100,
-      //     scaleX: 1,
-      //     scaleY: 1,
-      //     strokeWidth: 3,
-      //     stroke: 'black',
-      //     fill: '',
-      //     name: this.generateRandomString(10),
-      //     draggable: true,
-      //   }
-      // }
-      // else if(this.shape == 'triangle') {
-      //   newShape = {
-      //     rotation: 0,
-      //     x: this.position.x,
-      //     y: this.position.y,
-      //     sides: 3,
-      //     radius: 100,
-      //     scaleX: 1,
-      //     scaleY: 1,
-      //     strokeWidth: 3,
-      //     stroke: 'black',
-      //     fill: '',
-      //     name: this.generateRandomString(10),
-      //     draggable: true,
-      //   }
-      // }
-      // else if(this.shape == 'ellipse') {
-      //   newShape = {
-      //     rotation: 0,
-      //     x: this.position.x,
-      //     y: this.position.y,
-      //     radiusX: 100,
-      //     radiusY: 50,
-      //     scaleX: 1,
-      //     scaleY: 1,
-      //     strokeWidth: 3,
-      //     stroke: 'black',
-      //     fill: '',
-      //     name: this.generateRandomString(10),
-      //     draggable: true,
-      //   }
-      // }
-    
+    createNewShape() {
+      var newShape = {};
+      if(this.shape == 'rect') {
+        newShape = {
+          rotation: 0,
+          x: this.position.x,
+          y: this.position.y - 82,
+          width: 100,
+          height: 50,
+          scaleX: 1,
+          scaleY: 1,
+          strokeWidth: 3,
+          stroke: 'black',
+          fill: '',
+          name: this.generateRandomString(10),
+          draggable: true,
+        }
+      }
+      else if(this.shape == 'square') {
+        newShape = {
+          rotation: 45,
+          x: this.position.x,
+          y: this.position.y - 82,
+          sides: 4,
+          radius: 100,
+          scaleX: 1,
+          scaleY: 1,
+          strokeWidth: 3,
+          stroke: 'black',
+          fill: '',
+          name: this.generateRandomString(10),
+          draggable: true,
+        }
+      }
+      else if(this.shape == 'circle') {
+        newShape = {
+          rotation: 0,
+          x: this.position.x,
+          y: this.position.y - 82,
+          radius: 100,
+          scaleX: 1,
+          scaleY: 1,
+          strokeWidth: 3,
+          stroke: 'black',
+          fill: '',
+          name: this.generateRandomString(10),
+          draggable: true,
+        }
+      }
+      else if(this.shape == 'triangle') {
+        newShape = {
+          rotation: 0,
+          x: this.position.x,
+          y: this.position.y - 82,
+          sides: 3,
+          radius: 100,
+          scaleX: 1,
+          scaleY: 1,
+          strokeWidth: 3,
+          stroke: 'black',
+          fill: '',
+          name: this.generateRandomString(10),
+          draggable: true,
+        }
+      }
+      else if(this.shape == 'ellipse') {
+        newShape = {
+          rotation: 0,
+          x: this.position.x,
+          y: this.position.y - 82,
+          radiusX: 100,
+          radiusY: 50,
+          scaleX: 1,
+          scaleY: 1,
+          strokeWidth: 3,
+          stroke: 'black',
+          fill: '',
+          name: this.generateRandomString(10),
+          draggable: true,
+        }
+      }
       return newShape;
     },
     updateTransformer() {
@@ -341,11 +326,7 @@ export default {
   },
   created: function () {
     window.addEventListener("mousemove", (e) => {
-      let offsetY = e.clientY - document.querySelector(".toolbar").offsetHeight;
-      if (offsetY == "NaN") {
-        console.log(document.querySelector(".toolbar").offsetHeight);
-      }
-      this.position = { x: e.clientX, y: offsetY };
+      this.position = { x: e.clientX, y: e.clientY };
       console.log(this.position);
     });
   }
