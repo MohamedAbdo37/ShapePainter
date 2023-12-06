@@ -11,20 +11,28 @@
           <input type="color"  class="color-input" v-model="fill"/>
         </li>
         <li @click="setShape('color')" :class="{ selected: shape === 'color' }"><img src="./assets/varnish.png"></li>
-        <li><img src="./assets/reply.png" /></li>
-        <li><img src="./assets/redoo.png" /></li>
-        <li onclick="dialog.showModal()" ><img src="./assets/icons8-save-50.png" /></li>
-        <li><img src="./assets/icons8-image-file-50.png" /></li>
+        <li @click="undo"><img src="./assets/reply.png" alt="undo" /></li>
+        <li @click="redo"><img src="./assets/redoo.png" /></li>
+        <li onclick="sdialog.showModal()" ><img src="./assets/icons8-save-50.png" /></li>
+        <li onclick="ldialog.showModal()" ><img src="./assets/icons8-image-file-50.png" /></li>
         <li @click="setShape('copy')" :class="{ selected: shape === 'copy' }"><img src="./assets/copying.png" /></li>
         <li @click="setShape('paste')" :class="{ selected: shape === 'paste' }"><img src="./assets/paste.png" /></li>
         <li @click="setShape('delete')" :class="{ selected: shape === 'delete' }"><img src="./assets/bin.png" /></li>
       </ul> 
     </div>
-    <dialog id="dialog">
+    <dialog id="sdialog" >
       <form method="dialog">
         <label for="save">Enter the name</label>
         <input type="text" name="save" id="save" v-model="fileName">
         <button @click="saveLayer()">Save</button>
+        <button>Cansel</button>
+      </form>
+    </dialog>
+    <dialog id="ldialog" >
+      <form method="dialog">
+        <label for="load">Enter file name</label>
+        <input type="text" name="save" id="slodaave" v-model="fileName">
+        <button @click="loadLayer()">Load</button>
         <button>Cansel</button>
       </form>
     </dialog>
@@ -40,31 +48,37 @@
         :key="item.id"
         :config="item"
         @transformend="handleTransformEnd"
+        @dragend="handleTransformEnd"
       />
       <v-circle
         v-for="item in circles"
         :key="item.id"
         :config="item"
         @transformend="handleTransformEnd"
+        @dragend="handleTransformEnd"
       />
       <v-regular-polygon
         v-for="item in squares"
         :key="item.id"
         :config="item"
         @transformend="handleTransformEnd"
+        @dragend="handleTransformEnd"
       />
       <v-regular-polygon
         v-for="item in triangles"
         :key="item.id"
         :config="item"
         @transformend="handleTransformEnd"
+        @dragend="handleTransformEnd"
       />
       <v-ellipse
         v-for="item in ellipses"
         :key="item.id"
         :config="item"
         @transformend="handleTransformEnd"
+        @dragend="handleTransformEnd"
       />
+
       <v-transformer ref="transformer" />
     </v-layer>
   </v-stage>
@@ -82,9 +96,11 @@ export default {
     return {
       paintPressed: false,
       fileName: '',
+      saveDialog: false,
       shape: '',
       fill: '',
       copy: '',
+      creating: true,
       draw: false,
       stageSize: {
         width: width,
@@ -124,24 +140,31 @@ export default {
         switch(this.shape) {
           case 'rect':
             this.draw = true;
+            this.creating = true;
             break;
           case 'square':
             this.draw = true;
+            this.creating = true;
             break;
           case 'circle':
+            this.creating = true;
             this.draw = true;
             break;
           case 'triangle':
             this.draw = true;
+            this.creating = true;
             break;
           case 'ellipse':
             this.draw = true;
+            this.creating = true;
             break;
           case 'paste':
             this.draw = true;
+            this.creating = true;
             break;
           default:
             this.draw = false;
+            this.creating = false;
             break;
         }
     },
@@ -182,7 +205,9 @@ export default {
       shape.rotation = e.target.rotation();
       shape.scaleX = e.target.scaleX();
       shape.scaleY = e.target.scaleY();
+      shape.fill = e.target.fill();
 
+      console.log(shape);
       axios.get("http://localhost:8081/update",{
         params:{
           name: shape.name,
@@ -190,7 +215,8 @@ export default {
           y: parseInt(shape.y, 10),
           rotation: `${shape.rotation}`,
           scaleX: `${shape.scaleX}`,
-          scaleY: `${shape.scaleY}`
+          scaleY: `${shape.scaleY}`,
+          fill: shape.fill
         }
       }).then(r => {
         console.log("Shape updated");
@@ -227,6 +253,7 @@ export default {
 
         }
         this.paintPressed = false;
+        this.shape = '';
         this.selectedShapeID = '';
         this.updateTransformer();
         return;
@@ -234,6 +261,7 @@ export default {
 
       // clicked on transformer - do nothing
       if(e.target.getParent() === null){
+        this.selectedShapeID = '';
         this.updateTransformer();
         return;
       }
@@ -285,6 +313,7 @@ export default {
         } else if(triangle) {
           triangle.fill = this.fill;
         }
+        this.handleTransformEnd();
       }
       this.draw = false;
       this.updateTransformer();
@@ -440,7 +469,188 @@ export default {
       }).then(() =>{
         console.log('file save');
         this.fileName = '';
+        this.saveDialog = false;
       });
+    },
+    async loadLayer(){
+      let shapes = [];
+      await axios.get("http://localhost:8081/loadjson",{
+        params:{
+          filepath: `json//${this.fileName}.json`
+        }
+      }).then((r)=>{
+        console.log("file Loaded");
+        shapes = r.data;
+      });
+      for(let i = 0; i < shapes.length;i++){
+        switch(shapes[i].type) {
+          case 'rect':
+            this.rectangles.push(shapes[i]);
+            break;
+          case 'square':
+            this.squares.push(shapes[i])
+            break;
+          case 'circle':
+            this.circles.push(shapes[i])
+            break;
+          case 'triangle':
+            this.triangles.push(shapes[i])
+            break;
+          case 'ellipse':
+            this.ellipses.push(shapes[i])
+            break;
+        }
+      }
+    },
+    async undo(){
+      let shape = {};
+      let op = undefined;
+
+      await axios.get("http://localhost:8081/undo/op")
+      .then(r => {
+        op  = r.data;
+        console.log(r);
+        console.log(op);
+        });
+
+      await axios.get("http://localhost:8081/undo")
+      .then((r) =>{
+        console.log('undo');
+        shape = r.data;
+      });
+      console.log(op);
+      if(op === 'N') return;
+
+
+      if( op === 'M' || op === "C"){
+        const rect = this.rectangles.find(
+        (r) => r.name === shape.name
+      );
+      const square = this.squares.find(
+        (r) => r.name === shape.name
+      );
+      const circle = this.circles.find(
+        (r) => r.name === shape.name
+      );
+      const ellipse = this.ellipses.find(
+        (r) => r.name === shape.name
+      );
+      const triangle = this.triangles.find(
+        (r) => r.name === shape.name
+      );
+      
+      if(rect){
+        this.rectangles.splice(this.rectangles.findIndex(a => a.name === this.selectedShapeID) , 1);
+      }else if(square){
+        this.squares.splice(this.squares.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.squares);
+      }else if(circle){ 
+        this.circles.splice(this.circles.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.circles);
+      }else if(ellipse){
+        this.ellipses.splice(this.ellipses.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.ellipses);
+      }else if(triangle){
+        this.triangles.splice(this.triangles.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.triangles);
+      }
+      }
+      if(op === "D" || op === "M"){
+        switch(shape.type) {
+          case 'rect':
+            this.rectangles.push(shape);
+            break;
+          case 'square':
+            this.squares.push(shape)
+            break;
+          case 'circle':
+            this.circles.push(shape)
+            break;
+          case 'triangle':
+            this.triangles.push(shape)
+            break;
+          case 'ellipse':
+            this.ellipses.push(shape)
+            break;
+        }
+      }
+
+    },
+    async redo(){
+      let shape = {};
+      let op = undefined;
+
+      await axios.get("http://localhost:8081/redo/op")
+      .then(r => {
+        op  = r.data;
+        console.log(r);
+        console.log(op);
+        });
+
+      await axios.get("http://localhost:8081/redo")
+      .then((r) =>{
+        console.log('redo');
+        shape = r.data;
+      });
+      console.log(op);
+      if(op === 'N') return;
+
+
+      
+      if(op === "C" || op === "M"){
+        switch(shape.type) {
+          case 'rect':
+            this.rectangles.push(shape);
+            break;
+          case 'square':
+            this.squares.push(shape)
+            break;
+          case 'circle':
+            this.circles.push(shape)
+            break;
+          case 'triangle':
+            this.triangles.push(shape)
+            break;
+          case 'ellipse':
+            this.ellipses.push(shape)
+            break;
+        }
+      }
+
+      if( op === 'M' || op === "D"){
+        const rect = this.rectangles.find(
+        (r) => r.name === shape.name
+      );
+      const square = this.squares.find(
+        (r) => r.name === shape.name
+      );
+      const circle = this.circles.find(
+        (r) => r.name === shape.name
+      );
+      const ellipse = this.ellipses.find(
+        (r) => r.name === shape.name
+      );
+      const triangle = this.triangles.find(
+        (r) => r.name === shape.name
+      );
+      
+      if(rect){
+        this.rectangles.splice(this.rectangles.findIndex(a => a.name === this.selectedShapeID) , 1);
+      }else if(square){
+        this.squares.splice(this.squares.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.squares);
+      }else if(circle){ 
+        this.circles.splice(this.circles.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.circles);
+      }else if(ellipse){
+        this.ellipses.splice(this.ellipses.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.ellipses);
+      }else if(triangle){
+        this.triangles.splice(this.triangles.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.triangles);
+      }
+      }
+
     }
   },
   created: function () {
