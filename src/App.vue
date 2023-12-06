@@ -13,13 +13,21 @@
         <li @click="setShape('color')" :class="{ selected: shape === 'color' }"><img src="./assets/varnish.png"></li>
         <li><img src="./assets/reply.png" /></li>
         <li><img src="./assets/redoo.png" /></li>
-        <li><img src="./assets/icons8-save-50.png" /></li>
+        <li onclick="dialog.showModal()" ><img src="./assets/icons8-save-50.png" /></li>
         <li><img src="./assets/icons8-image-file-50.png" /></li>
         <li @click="setShape('copy')" :class="{ selected: shape === 'copy' }"><img src="./assets/copying.png" /></li>
         <li @click="setShape('paste')" :class="{ selected: shape === 'paste' }"><img src="./assets/paste.png" /></li>
-        <li><img src="./assets/bin.png" /></li>
+        <li @click="setShape('delete')" :class="{ selected: shape === 'delete' }"><img src="./assets/bin.png" /></li>
       </ul> 
     </div>
+    <dialog id="dialog">
+      <form method="dialog">
+        <label for="save">Enter the name</label>
+        <input type="text" name="save" id="save" v-model="fileName">
+        <button @click="saveLayer()">Save</button>
+        <button>Cansel</button>
+      </form>
+    </dialog>
   <v-stage
     ref="stage"
     :config="stageSize"
@@ -72,9 +80,12 @@ const height = window.innerHeight;
 export default {
   data() {
     return {
+      paintPressed: false,
+      fileName: '',
       shape: '',
       fill: '',
       copy: '',
+      draw: false,
       stageSize: {
         width: width,
         height: height,
@@ -98,7 +109,41 @@ export default {
   },
   methods: {
     setShape(shape) {
+
+      if(shape === 'color') {
+        this.paintPressed = true;
+        this.shape = '';
+        return 
+      }
+      if(this.shape === shape) {
+        this.shape = ''
+        return
+      }
       this.shape = shape;
+      this.paintPressed = false
+        switch(this.shape) {
+          case 'rect':
+            this.draw = true;
+            break;
+          case 'square':
+            this.draw = true;
+            break;
+          case 'circle':
+            this.draw = true;
+            break;
+          case 'triangle':
+            this.draw = true;
+            break;
+          case 'ellipse':
+            this.draw = true;
+            break;
+          case 'paste':
+            this.draw = true;
+            break;
+          default:
+            this.draw = false;
+            break;
+        }
     },
     handleTransformEnd(e) {
       // shape is transformed, let us save new attrs back to the node
@@ -130,6 +175,7 @@ export default {
       else
         shape = triangle
 
+      console.log(`from transformer ${shape}`)
       // update the state
       shape.x = e.target.x();
       shape.y = e.target.y();
@@ -137,11 +183,24 @@ export default {
       shape.scaleX = e.target.scaleX();
       shape.scaleY = e.target.scaleY();
 
+      axios.get("http://localhost:8081/update",{
+        params:{
+          name: shape.name,
+          x: parseInt(shape.x, 10),
+          y: parseInt(shape.y, 10),
+          rotation: `${shape.rotation}`,
+          scaleX: `${shape.scaleX}`,
+          scaleY: `${shape.scaleY}`
+        }
+      }).then(r => {
+        console.log("Shape updated");
+        console.log(r.data);
+      });
       console.log(shape);
     },
     async handleStageMouseDown(e) {
       // clicked on stage - clear selection
-      if (e.target === e.target.getStage()) {
+      if ((this.draw === true) && (e.target === e.target.getStage())) {
         let newShape = {};
         if(this.shape === "paste"){
           await this.pasteShape().then(r => newShape = r);
@@ -167,12 +226,17 @@ export default {
             break;
 
         }
+        this.paintPressed = false;
         this.selectedShapeID = '';
         this.updateTransformer();
         return;
       }
 
       // clicked on transformer - do nothing
+      if(e.target.getParent() === null){
+        this.updateTransformer();
+        return;
+      }
       const clickedOnTransformer =
         e.target.getParent().className === 'Transformer';
       if (clickedOnTransformer) {
@@ -205,7 +269,10 @@ export default {
         await this.copyShape();
       }
 
-      if(this.shape === "color"){
+      if(this.shape === 'delete')
+        this.delete();
+      
+      if(this.paintPressed === true){
         console.log("color");
         if (rect) {
           rect.fill = this.fill;
@@ -219,12 +286,12 @@ export default {
           triangle.fill = this.fill;
         }
       }
-
+      this.draw = false;
       this.updateTransformer();
     },
     async createNewShape() {
       var newShape = {};
-
+      console.log("Create Shape")
       await axios.get("http://localhost:8081/shape",{
         params:{
           x: this.position.x,
@@ -236,91 +303,12 @@ export default {
         newShape =r.data;});
 
       console.log(newShape);
-      // if(this.shape == 'rect') {
-      //   newShape = {
-      //     rotation: 0,
-      //     x: this.position.x,
-      //     y: this.position.y - 82,
-      //     width: 100,
-      //     height: 50,
-      //     scaleX: 1,
-      //     scaleY: 1,
-      //     strokeWidth: 3,
-      //     stroke: 'black',
-      //     fill: '',
-      //     name: this.generateRandomString(10),
-      //     draggable: true,
-      //   }
-      // }
-      // else if(this.shape == 'square') {
-      //   newShape = {
-      //     rotation: 45,
-      //     x: this.position.x,
-      //     y: this.position.y - 82,
-      //     sides: 4,
-      //     radius: 100,
-      //     scaleX: 1,
-      //     scaleY: 1,
-      //     strokeWidth: 3,
-      //     stroke: 'black',
-      //     fill: '',
-      //     name: this.generateRandomString(10),
-      //     draggable: true,
-      //   }
-      // }
-      // else if(this.shape == 'circle') {
-      //   newShape = {
-      //     rotation: 0,
-      //     x: this.position.x,
-      //     y: this.position.y - 82,
-      //     radius: 100,
-      //     scaleX: 1,
-      //     scaleY: 1,
-      //     strokeWidth: 3,
-      //     stroke: 'black',
-      //     fill: '',
-      //     name: this.generateRandomString(10),
-      //     draggable: true,
-      //   }
-      // }
-      // else if(this.shape == 'triangle') {
-      //   newShape = {
-      //     rotation: 0,
-      //     x: this.position.x,
-      //     y: this.position.y - 82,
-      //     sides: 3,
-      //     radius: 100,
-      //     scaleX: 1,
-      //     scaleY: 1,
-      //     strokeWidth: 3,
-      //     stroke: 'black',
-      //     fill: '',
-      //     name: this.generateRandomString(10),
-      //     draggable: true,
-      //   }
-      // }
-      // else if(this.shape == 'ellipse') {
-      //   newShape = {
-      //     rotation: 0,
-      //     x: this.position.x,
-      //     y: this.position.y - 82,
-      //     radiusX: 100,
-      //     radiusY: 50,
-      //     scaleX: 1,
-      //     scaleY: 1,
-      //     strokeWidth: 3,
-      //     stroke: 'black',
-      //     fill: '',
-      //     name: this.generateRandomString(10),
-      //     draggable: true,
-      //   }
-      // }
 
       return newShape;
     },
     async pasteShape() {
       var newShape = {};
-
+      console.log("from Paste")
       await axios.get("http://localhost:8081/paste",{
         params:{
           x: this.position.x,
@@ -335,6 +323,8 @@ export default {
       return newShape;
     },
     async copyShape() {
+
+      console.log("from copy")
       const rect = this.rectangles.find(
         (r) => r.name === this.selectedShapeID
       );
@@ -362,12 +352,55 @@ export default {
       else if(triangle)
         this.copy = 'triangle';
 
-      await axios.get("http://localhost:8081/copy",{
+      console.log(this.selectedShapeID);
+      if(this.selectedShapeID !== ''){
+        await axios.get("http://localhost:8081/copy",{
+          params:{
+            name: this.selectedShapeID
+          }
+        }).then(console.log("Shape copied"));
+      }
+      this.shape = '';
+    },
+    delete(){
+      const rect = this.rectangles.find(
+        (r) => r.name === this.selectedShapeID
+      );
+      const square = this.squares.find(
+        (r) => r.name === this.selectedShapeID
+      );
+      const circle = this.circles.find(
+        (r) => r.name === this.selectedShapeID
+      );
+      const ellipse = this.ellipses.find(
+        (r) => r.name === this.selectedShapeID
+      );
+      const triangle = this.triangles.find(
+        (r) => r.name === this.selectedShapeID
+      );
+      
+      if(rect){
+        this.rectangles.splice(this.rectangles.findIndex(a => a.name === this.selectedShapeID) , 1);
+      }else if(square){
+        this.squares.splice(this.squares.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.squares);
+      }else if(circle){ 
+        this.circles.splice(this.circles.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.circles);
+      }else if(ellipse){
+        this.ellipses.splice(this.ellipses.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.ellipses);
+      }else if(triangle){
+        this.triangles.splice(this.triangles.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.triangles);
+      }
+      axios.get("http://localhost:8081/delete",{
         params:{
           name: this.selectedShapeID
         }
-      }).then(console.log("Shape copied"));
-
+      }).then(console.log("Shape deleted"));
+      this.selectedShapeID = '';
+      this.updateTransformer();
     },
     updateTransformer() {
       // here we need to manually attach or detach Transformer node
@@ -398,6 +431,16 @@ export default {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
       }
       return result;
+    },
+    saveLayer(){
+      axios.get("http://localhost:8081/savejson",{
+        params:{
+          filepath: `json//${this.fileName}.json`
+        }
+      }).then(() =>{
+        console.log('file save');
+        this.fileName = '';
+      });
     }
   },
   created: function () {
