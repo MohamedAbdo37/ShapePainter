@@ -15,8 +15,8 @@
         <li><img src="./assets/redoo.png" /></li>
         <li><img src="./assets/icons8-save-50.png" /></li>
         <li><img src="./assets/icons8-image-file-50.png" /></li>
-        <li><img src="./assets/copying.png" /></li>
-        <li><img src="./assets/paste.png" /></li>
+        <li @click="setShape('copy')" :class="{ selected: shape === 'copy' }"><img src="./assets/copying.png" /></li>
+        <li @click="setShape('paste')" :class="{ selected: shape === 'paste' }"><img src="./assets/paste.png" /></li>
         <li><img src="./assets/bin.png" /></li>
       </ul> 
     </div>
@@ -74,6 +74,7 @@ export default {
     return {
       shape: '',
       fill: '',
+      copy: '',
       stageSize: {
         width: width,
         height: height,
@@ -138,11 +139,15 @@ export default {
 
       console.log(shape);
     },
-   async handleStageMouseDown(e) {
+    async handleStageMouseDown(e) {
       // clicked on stage - clear selection
       if (e.target === e.target.getStage()) {
         let newShape = {};
-       await this.createNewShape().then((r)=>newShape=r);
+        if(this.shape === "paste"){
+          await this.pasteShape().then(r => newShape = r);
+          this.shape = this.copy;
+        }
+        else await this.createNewShape().then((r)=>newShape=r);
         console.log(newShape);
         switch(this.shape) {
           case 'rect':
@@ -196,7 +201,10 @@ export default {
         this.selectedShapeID = name;
       }
 
-      
+      if(this.shape === "copy"){
+        await this.copyShape();
+      }
+
       if(this.shape === "color"){
         console.log("color");
         if (rect) {
@@ -214,8 +222,7 @@ export default {
 
       this.updateTransformer();
     },
-   
-   async createNewShape() {
+    async createNewShape() {
       var newShape = {};
 
       await axios.get("http://localhost:8081/shape",{
@@ -308,7 +315,59 @@ export default {
       //     draggable: true,
       //   }
       // }
+
       return newShape;
+    },
+    async pasteShape() {
+      var newShape = {};
+
+      await axios.get("http://localhost:8081/paste",{
+        params:{
+          x: this.position.x,
+          y: this.position.y
+        }
+      }).then((r)=> {
+        console.log(r);
+        newShape =r.data;});
+
+      console.log(newShape);
+
+      return newShape;
+    },
+    async copyShape() {
+      const rect = this.rectangles.find(
+        (r) => r.name === this.selectedShapeID
+      );
+      const square = this.squares.find(
+        (r) => r.name === this.selectedShapeID
+      );
+      const circle = this.circles.find(
+        (r) => r.name === this.selectedShapeID
+      );
+      const ellipse = this.ellipses.find(
+        (r) => r.name === this.selectedShapeID
+      );
+      const triangle = this.triangles.find(
+        (r) => r.name === this.selectedShapeID
+      );
+      
+      if(rect)
+        this.copy = 'rect';
+      else if(square)
+        this.copy = 'square';
+      else if(circle) 
+        this.copy = 'circle';
+      else if(ellipse)
+        this.copy = 'rect';
+      else if(triangle)
+        this.copy = 'triangle';
+
+      await axios.get("http://localhost:8081/copy",{
+        params:{
+          name: this.selectedShapeID
+        }
+      }).then(console.log("Shape copied"));
+
     },
     updateTransformer() {
       // here we need to manually attach or detach Transformer node
