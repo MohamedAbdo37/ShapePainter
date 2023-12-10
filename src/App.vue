@@ -747,7 +747,10 @@ export default {
   created: function () {
     window.addEventListener("mousemove", (e) => {
       this.position = { x: e.clientX, y: e.clientY };
-    
+    });
+
+    window.addEventListener("beforeunload", () =>{
+      axios.get("http://localhost:8081/relod");
     });
   }
 };
