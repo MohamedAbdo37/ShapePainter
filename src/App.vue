@@ -64,6 +64,7 @@
         @transformend="handleTransformEnd"
         @dragend="handleTransformEnd"
       />
+      
       <v-regular-polygon
         v-for="item in triangles"
         :key="item.id"
@@ -71,8 +72,17 @@
         @transformend="handleTransformEnd"
         @dragend="handleTransformEnd"
       />
+
       <v-ellipse
         v-for="item in ellipses"
+        :key="item.id"
+        :config="item"
+        @transformend="handleTransformEnd"
+        @dragend="handleTransformEnd"
+      />
+
+      <v-line
+        v-for="item in lines"
         :key="item.id"
         :config="item"
         @transformend="handleTransformEnd"
@@ -116,6 +126,23 @@ export default {
       ],
       ellipses: [
       ],
+      lines: [
+      {
+        points: [10, 70, 40, 23, 150, 60, 250, 20],
+        stroke: 'blue',
+        name: "l",
+        strokeWidth: 10,
+        lineCap: 'round',
+        lineJoin: 'round',
+        /*
+         * line segments with a length of 29px with a gap
+         * of 20px followed by a line segment of 0.001px (a dot)
+         * followed by a gap of 20px
+         */
+        dash: [29, 20, 0.001, 20],
+        draggable: true,
+      },
+      ],
       selectedShapeID: '',
       position: {
           x: undefined,
@@ -158,6 +185,10 @@ export default {
             this.draw = true;
             this.creating = true;
             break;
+          case 'line':
+            this.draw = true;
+            this.creating = true;
+            break;
           case 'paste':
             this.draw = true;
             this.creating = true;
@@ -186,7 +217,13 @@ export default {
       const triangle = this.triangles.find(
         (r) => r.name === this.selectedShapeID
       );
+
+      const line = this.lines.find(
+        (r) => r.name === this.selectedShapeID
+      );
+
       var shape;
+      
       if(rect)
         shape = rect
       else if(square)
@@ -195,6 +232,8 @@ export default {
         shape = circle
       else if(ellipse)
         shape = ellipse
+      else if(line)
+        shape = line
       else
         shape = triangle
 
@@ -202,6 +241,7 @@ export default {
       // update the state
       shape.x = e.target.x();
       shape.y = e.target.y();
+      // shape.points = e.target.points();
       shape.rotation = e.target.rotation();
       shape.scaleX = e.target.scaleX();
       shape.scaleY = e.target.scaleY();
@@ -216,7 +256,7 @@ export default {
           rotation: `${shape.rotation}`,
           scaleX: `${shape.scaleX}`,
           scaleY: `${shape.scaleY}`,
-          fill: shape.fill
+          fill: shape.fill,
         }
       }).then(r => {
         console.log("Shape updated");
@@ -226,7 +266,7 @@ export default {
     },
     async handleStageMouseDown(e) {
       // clicked on stage - clear selection
-      if ((this.draw === true) && (e.target === e.target.getStage())) {
+      if ((this.shape !== "") && (this.draw === true) && (e.target === e.target.getStage())) {
         let newShape = {};
         if(this.shape === "paste"){
           await this.pasteShape().then(r => newShape = r);
@@ -249,6 +289,9 @@ export default {
             break;
           case 'ellipse':
             this.ellipses.push(newShape)
+            break;
+          case 'line':
+            this.lines.push(newShape)
             break;
 
         }
@@ -278,7 +321,8 @@ export default {
       const circle = this.circles.find((r) => r.name === name);
       const ellipse = this.ellipses.find((r) => r.name === name);
       const triangle = this.triangles.find((r) => r.name === name);
-      
+      const line = this.lines.find((r) => r.name === name);
+
       if (rect) {
         this.selectedShapeID = name;
       } else if(square) {
@@ -288,6 +332,8 @@ export default {
       } else if(ellipse) {
         this.selectedShapeID = name;
       } else if(triangle) {
+        this.selectedShapeID = name;
+      }else if(line) {
         this.selectedShapeID = name;
       } else {
         this.selectedShapeID = name;
@@ -369,6 +415,9 @@ export default {
       const triangle = this.triangles.find(
         (r) => r.name === this.selectedShapeID
       );
+      const line = this.lines.find(
+        (r) => r.name === this.selectedShapeID
+      );
       
       if(rect)
         this.copy = 'rect';
@@ -380,6 +429,8 @@ export default {
         this.copy = 'rect';
       else if(triangle)
         this.copy = 'triangle';
+      else if(line)
+        this.copy = 'line';
 
       console.log(this.selectedShapeID);
       if(this.selectedShapeID !== ''){
@@ -407,6 +458,9 @@ export default {
       const triangle = this.triangles.find(
         (r) => r.name === this.selectedShapeID
       );
+      const line = this.lines.find(
+        (r) => r.name === this.selectedShapeID
+      );
       
       if(rect){
         this.rectangles.splice(this.rectangles.findIndex(a => a.name === this.selectedShapeID) , 1);
@@ -422,6 +476,9 @@ export default {
       }else if(triangle){
         this.triangles.splice(this.triangles.findIndex(a => a.name === this.selectedShapeID) , 1);
         console.log(this.triangles);
+      }else if(line){
+        this.lines.splice(this.lines.findIndex(a => a.name === this.selectedShapeID) , 1);
+        console.log(this.lines);
       }
       axios.get("http://localhost:8081/delete",{
         params:{
@@ -450,16 +507,6 @@ export default {
         // remove transformer
         transformerNode.nodes([]);
       }
-    },
-    generateRandomString(length) {
-      let result = '';
-      const characters =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      const charactersLength = characters.length;
-      for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      }
-      return result;
     },
     saveLayer(){
       axios.get("http://localhost:8081/savejson",{
@@ -499,6 +546,9 @@ export default {
           case 'ellipse':
             this.ellipses.push(shapes[i])
             break;
+          case 'line':
+            this.lines.push(shapes[i])
+            break;
         }
       }
     },
@@ -518,42 +568,49 @@ export default {
         console.log('undo');
         shape = r.data;
       });
-      console.log(op);
+      
+      console.log(shape);
       if(op === 'N') return;
 
-
+      console.log(shape);
       if( op === 'M' || op === "C"){
         const rect = this.rectangles.find(
-        (r) => r.name === shape.name
-      );
-      const square = this.squares.find(
-        (r) => r.name === shape.name
-      );
-      const circle = this.circles.find(
-        (r) => r.name === shape.name
-      );
-      const ellipse = this.ellipses.find(
-        (r) => r.name === shape.name
-      );
-      const triangle = this.triangles.find(
-        (r) => r.name === shape.name
-      );
-      
-      if(rect){
-        this.rectangles.splice(this.rectangles.findIndex(a => a.name === this.selectedShapeID) , 1);
-      }else if(square){
-        this.squares.splice(this.squares.findIndex(a => a.name === this.selectedShapeID) , 1);
-        console.log(this.squares);
-      }else if(circle){ 
-        this.circles.splice(this.circles.findIndex(a => a.name === this.selectedShapeID) , 1);
-        console.log(this.circles);
-      }else if(ellipse){
-        this.ellipses.splice(this.ellipses.findIndex(a => a.name === this.selectedShapeID) , 1);
-        console.log(this.ellipses);
-      }else if(triangle){
-        this.triangles.splice(this.triangles.findIndex(a => a.name === this.selectedShapeID) , 1);
-        console.log(this.triangles);
-      }
+          (r) => r.name === shape.name
+        );
+        const square = this.squares.find(
+          (r) => r.name === shape.name
+        );
+        const circle = this.circles.find(
+          (r) => r.name === shape.name
+        );
+        const ellipse = this.ellipses.find(
+          (r) => r.name === shape.name
+        );
+        const triangle = this.triangles.find(
+          (r) => r.name === shape.name
+        );
+        const line = this.lines.find(
+          (r) => r.name === this.selectedShapeID
+        );
+        
+        if(rect){
+          this.rectangles.splice(this.rectangles.findIndex(a => a.name === this.selectedShapeID) , 1);
+        }else if(square){
+          this.squares.splice(this.squares.findIndex(a => a.name === this.selectedShapeID) , 1);
+          console.log(this.squares);
+        }else if(circle){ 
+          this.circles.splice(this.circles.findIndex(a => a.name === this.selectedShapeID) , 1);
+          console.log(this.circles);
+        }else if(ellipse){
+          this.ellipses.splice(this.ellipses.findIndex(a => a.name === this.selectedShapeID) , 1);
+          console.log(this.ellipses);
+        }else if(triangle){
+          this.triangles.splice(this.triangles.findIndex(a => a.name === this.selectedShapeID) , 1);
+          console.log(this.triangles);
+        }else if(line){
+          this.lines.splice(this.lines.findIndex(a => a.name === this.selectedShapeID) , 1);
+          console.log(this.lines);
+        }
       }
       if(op === "D" || op === "M"){
         switch(shape.type) {
@@ -571,6 +628,9 @@ export default {
             break;
           case 'ellipse':
             this.ellipses.push(shape)
+            break;
+          case 'line':
+            this.lines.push(shape)
             break;
         }
       }
@@ -595,8 +655,48 @@ export default {
       console.log(op);
       if(op === 'N') return;
 
-
+      console.log(shape);
       
+      if( op === 'M' || op === "D"){
+        const rect = this.rectangles.find(
+          (r) => r.name === shape.name
+        );  
+        const square = this.squares.find(
+          (r) => r.name === shape.name
+        );
+        const circle = this.circles.find(
+          (r) => r.name === shape.name
+        );
+        const ellipse = this.ellipses.find(
+          (r) => r.name === shape.name
+        );
+        const triangle = this.triangles.find(
+          (r) => r.name === shape.name
+        );
+        const line = this.lines.find(
+          (r) => r.name === shape.name
+        );
+        
+        if(rect){
+          this.rectangles.splice(this.rectangles.findIndex(a => a.name === this.selectedShapeID) , 1);
+        }else if(square){
+          this.squares.splice(this.squares.findIndex(a => a.name === this.selectedShapeID) , 1);
+          console.log(this.squares);
+        }else if(circle){ 
+          this.circles.splice(this.circles.findIndex(a => a.name === this.selectedShapeID) , 1);
+          console.log(this.circles);
+        }else if(ellipse){
+          this.ellipses.splice(this.ellipses.findIndex(a => a.name === this.selectedShapeID) , 1);
+          console.log(this.ellipses);
+        }else if(triangle){
+          this.triangles.splice(this.triangles.findIndex(a => a.name === this.selectedShapeID) , 1);
+          console.log(this.triangles);
+        }else if(line){
+          this.lines.splice(this.lines.findIndex(a => a.name === this.selectedShapeID) , 1);
+          console.log(this.lines);
+        }
+      }
+
       if(op === "C" || op === "M"){
         switch(shape.type) {
           case 'rect':
@@ -614,41 +714,10 @@ export default {
           case 'ellipse':
             this.ellipses.push(shape)
             break;
+          case 'line':
+            this.lines.push(shape)
+            break;
         }
-      }
-
-      if( op === 'M' || op === "D"){
-        const rect = this.rectangles.find(
-        (r) => r.name === shape.name
-      );
-      const square = this.squares.find(
-        (r) => r.name === shape.name
-      );
-      const circle = this.circles.find(
-        (r) => r.name === shape.name
-      );
-      const ellipse = this.ellipses.find(
-        (r) => r.name === shape.name
-      );
-      const triangle = this.triangles.find(
-        (r) => r.name === shape.name
-      );
-      
-      if(rect){
-        this.rectangles.splice(this.rectangles.findIndex(a => a.name === this.selectedShapeID) , 1);
-      }else if(square){
-        this.squares.splice(this.squares.findIndex(a => a.name === this.selectedShapeID) , 1);
-        console.log(this.squares);
-      }else if(circle){ 
-        this.circles.splice(this.circles.findIndex(a => a.name === this.selectedShapeID) , 1);
-        console.log(this.circles);
-      }else if(ellipse){
-        this.ellipses.splice(this.ellipses.findIndex(a => a.name === this.selectedShapeID) , 1);
-        console.log(this.ellipses);
-      }else if(triangle){
-        this.triangles.splice(this.triangles.findIndex(a => a.name === this.selectedShapeID) , 1);
-        console.log(this.triangles);
-      }
       }
 
     }
