@@ -1,5 +1,6 @@
 <template>
-  <div class="toolbar">
+  <div>
+    <div class="toolbar">
       <ul>
         <li @click="setShape('line')" :class="{ selected: shape === 'line' }"><img src="./assets/diagonal-line.png" /></li>
         <li @click="setShape('rect')" :class="{ selected: shape === 'rect' }"><img src="./assets/rectangular-shape-outline.png" /></li>
@@ -92,6 +93,7 @@
       <v-transformer ref="transformer" />
     </v-layer>
   </v-stage>
+  </div>
 </template>
 
 <script>
@@ -127,21 +129,6 @@ export default {
       ellipses: [
       ],
       lines: [
-      {
-        points: [10, 70, 40, 23, 150, 60, 250, 20],
-        stroke: 'blue',
-        name: "l",
-        strokeWidth: 10,
-        lineCap: 'round',
-        lineJoin: 'round',
-        /*
-         * line segments with a length of 29px with a gap
-         * of 20px followed by a line segment of 0.001px (a dot)
-         * followed by a gap of 20px
-         */
-        dash: [29, 20, 0.001, 20],
-        draggable: true,
-      },
       ],
       selectedShapeID: '',
       position: {

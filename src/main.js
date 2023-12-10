@@ -1,7 +1,13 @@
-import { createApp } from 'vue';
-import App from './App.vue';
+import Vue from 'vue'
+import App from './App.vue'
 import VueKonva from 'vue-konva';
 
-const app = createApp(App);
-app.mount('#app');
-app.use(VueKonva);
+Vue.config.productionTip = false
+
+new Vue({
+  render: h => h(App),
+}).$mount('#app')
+
+
+
+Vue.use(VueKonva);
