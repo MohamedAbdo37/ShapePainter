@@ -540,7 +540,7 @@ export default {
       if(this.loadType === 'json'){
         await axios.get("http://localhost:8081/loadjson",{
           params:{
-            filepath: `${this.path}//${this.fileName}.json`
+            filepath: this.fileName
           }
         }).then((r)=>{
           console.log("file Loaded");
@@ -549,7 +549,7 @@ export default {
       }else{
         await axios.get("http://localhost:8081/loadxml",{
           params:{
-            filepath: `${this.path}//${this.fileName}.xml`
+            filepath: this.fileName
           }
         }).then((r)=>{
           console.log("file Loaded");
