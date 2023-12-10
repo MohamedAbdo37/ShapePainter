@@ -24,7 +24,12 @@
     <dialog id="sdialog" >
       <form method="dialog">
         <label for="save">Enter the name</label>
-        <input type="text" name="save" id="save" v-model="fileName">
+        <input type="text" name="save" id="save" v-model="fileName"><br />
+        <label for="saveAs">Save as:</label>
+        <select name="saveAs" v-model="saveType">
+          <option value="json">Json</option>
+          <option value="xml">Xml</option>
+        </select><br>
         <button @click="saveLayer()">Save</button>
         <button>Cansel</button>
       </form>
@@ -32,7 +37,12 @@
     <dialog id="ldialog" >
       <form method="dialog">
         <label for="load">Enter file name</label>
-        <input type="text" name="save" id="slodaave" v-model="fileName">
+        <input type="text" name="save" id="slodaave" v-model="fileName"><br />
+        <label for="loadType">File type</label>
+        <select name="loadType" v-model="loadType">
+          <option value="json">Json</option>
+          <option value="xml">Xml</option>
+        </select><br>
         <button @click="loadLayer()">Load</button>
         <button>Cansel</button>
       </form>
@@ -112,6 +122,8 @@ export default {
       shape: '',
       fill: '',
       copy: '',
+      loadType: '',
+      saveType: '',
       creating: true,
       draw: false,
       stageSize: {
@@ -496,26 +508,49 @@ export default {
       }
     },
     saveLayer(){
-      axios.get("http://localhost:8081/savejson",{
-        params:{
-          filepath: `json//${this.fileName}.json`
-        }
-      }).then(() =>{
-        console.log('file save');
-        this.fileName = '';
-        this.saveDialog = false;
-      });
+      if(this.saveType === "json"){
+        axios.get("http://localhost:8081/savejson",{
+          params:{
+            filepath: `json//${this.fileName}.json`
+          }
+        }).then(() =>{
+          console.log('file save');
+          this.fileName = '';
+          this.saveDialog = false;
+        });
+      }else{
+        axios.get("http://localhost:8081/savexml",{
+          params:{
+            filepath: `json//${this.fileName}.json`
+          }
+        }).then(() =>{
+          console.log('file save');
+          this.fileName = '';
+          this.saveDialog = false;
+        });
+      }
     },
     async loadLayer(){
       let shapes = [];
-      await axios.get("http://localhost:8081/loadjson",{
-        params:{
-          filepath: `json//${this.fileName}.json`
-        }
-      }).then((r)=>{
-        console.log("file Loaded");
-        shapes = r.data;
-      });
+      if(this.loadType === 'json'){
+        await axios.get("http://localhost:8081/loadjson",{
+          params:{
+            filepath: `json//${this.fileName}.json`
+          }
+        }).then((r)=>{
+          console.log("file Loaded");
+          shapes = r.data;
+        });
+      }else{
+        await axios.get("http://localhost:8081/loadxml",{
+          params:{
+            filepath: `json//${this.fileName}.json`
+          }
+        }).then((r)=>{
+          console.log("file Loaded");
+          shapes = r.data;
+        });
+      }
       for(let i = 0; i < shapes.length;i++){
         switch(shapes[i].type) {
           case 'rect':
