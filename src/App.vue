@@ -521,7 +521,7 @@ export default {
       }else{
         axios.get("http://localhost:8081/savexml",{
           params:{
-            filepath: `json//${this.fileName}.json`
+            filepath: `json//${this.fileName}.xml`
           }
         }).then(() =>{
           console.log('file save');
@@ -544,7 +544,7 @@ export default {
       }else{
         await axios.get("http://localhost:8081/loadxml",{
           params:{
-            filepath: `json//${this.fileName}.json`
+            filepath: `json//${this.fileName}.xml`
           }
         }).then((r)=>{
           console.log("file Loaded");
