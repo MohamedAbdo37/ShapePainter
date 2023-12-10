@@ -23,7 +23,7 @@
     </div>
     <dialog id="sdialog" >
       <form method="dialog">
-        <label for="load">Enter the Path: </label>
+        <label for="load">Enter the Path:</label>
         <input type="text" name="save" id="slodaave" v-model="path"><br />
         <label for="save">Enter the name</label>
         <input type="text" name="save" id="save" v-model="fileName"><br />
@@ -38,8 +38,10 @@
     </dialog>
     <dialog id="ldialog" >
       <form method="dialog">
-        <label for="load">Select file: </label>
-        <input type="file" name="save" id="slodaave" :value="fileName"><br />
+        <label for="load">Enter the Path:</label>
+        <input type="text" name="save" id="slodaave" v-model="path"><br />
+        <label for="load">Enter file name</label>
+        <input type="text" name="save" id="slodaave" v-model="fileName"><br />
         <label for="loadType">File type</label>
         <select name="loadType" v-model="loadType">
           <option value="json">Json</option>
@@ -540,7 +542,7 @@ export default {
       if(this.loadType === 'json'){
         await axios.get("http://localhost:8081/loadjson",{
           params:{
-            filepath: this.fileName
+            filepath: `${this.path}//${this.fileName}.json`
           }
         }).then((r)=>{
           console.log("file Loaded");
@@ -549,7 +551,7 @@ export default {
       }else{
         await axios.get("http://localhost:8081/loadxml",{
           params:{
-            filepath: this.fileName
+            filepath: `${this.path}//${this.fileName}.xml`
           }
         }).then((r)=>{
           console.log("file Loaded");
