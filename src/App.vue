@@ -23,6 +23,8 @@
     </div>
     <dialog id="sdialog" >
       <form method="dialog">
+        <label for="load">Enter the Path:</label>
+        <input type="text" name="save" id="slodaave" v-model="path"><br />
         <label for="save">Enter the name</label>
         <input type="text" name="save" id="save" v-model="fileName"><br />
         <label for="saveAs">Save as:</label>
@@ -36,6 +38,8 @@
     </dialog>
     <dialog id="ldialog" >
       <form method="dialog">
+        <label for="load">Enter the Path:</label>
+        <input type="text" name="save" id="slodaave" v-model="path"><br />
         <label for="load">Enter file name</label>
         <input type="text" name="save" id="slodaave" v-model="fileName"><br />
         <label for="loadType">File type</label>
@@ -126,6 +130,7 @@ export default {
       saveType: '',
       creating: true,
       draw: false,
+      path: '',
       stageSize: {
         width: width,
         height: height,
@@ -151,6 +156,7 @@ export default {
   },
   methods: {
     setShape(shape) {
+
 
       if(shape === 'color') {
         this.paintPressed = true;
@@ -361,6 +367,7 @@ export default {
         this.handleTransformEnd();
       }
       this.draw = false;
+      
       this.updateTransformer();
     },
     async createNewShape() {
@@ -425,7 +432,7 @@ export default {
       else if(circle) 
         this.copy = 'circle';
       else if(ellipse)
-        this.copy = 'rect';
+        this.copy = 'ellipse';
       else if(triangle)
         this.copy = 'triangle';
       else if(line)
@@ -511,7 +518,7 @@ export default {
       if(this.saveType === "json"){
         axios.get("http://localhost:8081/savejson",{
           params:{
-            filepath: `json//${this.fileName}.json`
+            filepath: `${this.path}//${this.fileName}.json`
           }
         }).then(() =>{
           console.log('file save');
@@ -521,7 +528,7 @@ export default {
       }else{
         axios.get("http://localhost:8081/savexml",{
           params:{
-            filepath: `json//${this.fileName}.xml`
+            filepath: `${this.path}//${this.fileName}.xml`
           }
         }).then(() =>{
           console.log('file save');
@@ -535,7 +542,7 @@ export default {
       if(this.loadType === 'json'){
         await axios.get("http://localhost:8081/loadjson",{
           params:{
-            filepath: `json//${this.fileName}.json`
+            filepath: `${this.path}//${this.fileName}.json`
           }
         }).then((r)=>{
           console.log("file Loaded");
@@ -544,7 +551,7 @@ export default {
       }else{
         await axios.get("http://localhost:8081/loadxml",{
           params:{
-            filepath: `json//${this.fileName}.xml`
+            filepath: `${this.path}//${this.fileName}.xml`
           }
         }).then((r)=>{
           console.log("file Loaded");
